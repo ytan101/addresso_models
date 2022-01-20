@@ -25,6 +25,7 @@ enable_grid_search = 1
 
 data_folder = ""
 
+
 def fit_model(
     model, x, Y, x_validation, validation_identifier, original_model_name=None
 ):
@@ -32,12 +33,15 @@ def fit_model(
     y_pred = model.predict(x_validation)
     y_pred = y_pred.round()
     model_name = type(model).__name__
+    results_dict[model_name]["Pred"] = y_pred
+    results_dict[model_name]["Actual"] = validation_identifier
     results_dict[model_name]["MSE"] = mean_squared_error(
         validation_identifier, y_pred)
     results_dict[model_name]["CCC"] = concordance_correlation_coefficient(
         validation_identifier, y_pred)
     results_dict[model_name]["Pearson R"]["R"], results_dict[model_name]["Pearson R"]["p-value"] = pearsonr(
         validation_identifier, y_pred)
+    return results_dict
 
 
 def linear_regressor(X, y, X_validation, validation_identifier):
