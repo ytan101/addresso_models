@@ -17,24 +17,35 @@ from sklearn.decomposition import PCA
 from scipy.stats.stats import pearsonr
 
 import regressor_models
+import os
 
-inpu = sio.loadmat("Train_text.mat")
-mat_input = inpu["final_output"]
+attempts = 0
+while attempts < 100:
+    try:
+        data_folder = input("Enter the datasets you wish to use: ")
+        # if data_folder == "all":
+            # make dictionary with input and output of all datasets
+        inpu = sio.loadmat(f"data/{data_folder}/Train_text.mat")
+        mat_input = inpu["final_output"]
+        inpu_validation = sio.loadmat(f"data/{data_folder}/Test_text.mat")
+        mat_input_validation = inpu_validation["final_output"]
+        break
+    except:
+        attempts += 1
+        print("Invalid file name, please choose one of the following")
+        print("egemaps, emobase_feature, emobase_feature_large, text, text_large, word_embedding, all")
 
 Actual_number_of_input = 88
 number_of_features = mat_input.shape[1] - 1
 
 # Regression data
 X = mat_input[:, 0:Actual_number_of_input]
-Y = mat_input[:, number_of_features]
+y = mat_input[:, number_of_features]
 
 scaler = StandardScaler()
 # scaler = RobustScaler()
 scaler.fit(X)
 X = scaler.transform(X)
-print(X)
-print("Feature scaling")
-#
 PCA_enabled = 0
 
 
@@ -50,22 +61,18 @@ user_input = 50
 
 if ensemble_learning == 1:
 
-    inpu_validation = sio.loadmat("Test_text.mat")
-    mat_input_validation = inpu_validation["final_output"]
-
     X_validation = mat_input_validation[:, 0:Actual_number_of_input]
     X_validation = scaler.transform(X_validation)
     validation_identifier = mat_input_validation[:, number_of_features]
 
-    print(validation_identifier)
-    print("Ground Truth")
-
     # List of models
-    regressor_models.linear_regressor(X, Y, X_validation, validation_identifier)
-    regressor_models.random_forest_regressor(X, Y, X_validation, validation_identifier)
-    regressor_models.mlp_regressor(X, Y, X_validation, validation_identifier)
+    regressor_models.data_folder = data_folder
+    regressor_models.linear_regressor(X, y, X_validation, validation_identifier)
+    regressor_models.random_forest_regressor(X, y, X_validation, validation_identifier)
+    regressor_models.mlp_regressor(X, y, X_validation, validation_identifier)
+    regressor_models.sgd_regressor(X, y, X_validation, validation_identifier)
+    regressor_models.gradient_boosting_regressor(X, y, X_validation, validation_identifier)
     print(regressor_models.results_dict)
-    print("emobase_large")
     # print(X_validation, validation_identifier)
 
     # classifier_models.mlp_classifier(X, Y, X_validation, validation_identifier)

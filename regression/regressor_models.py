@@ -15,13 +15,15 @@ from sklearn import neighbors
 import numpy as np
 from scipy.stats.stats import pearsonr
 from sklearn.model_selection import GridSearchCV
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.naive_bayes import GaussianNB, BernoulliNB, CategoricalNB
 
-results_dict = defaultdict(dict)
+from utils import concordance_correlation_coefficient
+
+# Create nested defaultdicts
+results_dict = defaultdict(lambda: defaultdict(dict))
 
 enable_grid_search = 1
 
+data_folder = ""
 
 def fit_model(
     model, x, Y, x_validation, validation_identifier, original_model_name=None
@@ -30,9 +32,12 @@ def fit_model(
     y_pred = model.predict(x_validation)
     y_pred = y_pred.round()
     model_name = type(model).__name__
-    results_dict[model_name]["accuracy"] = accuracy_score(validation_identifier, y_pred)
-    print(y_pred)
-    # results_dict[model_name] = model.best_params_
+    results_dict[model_name]["MSE"] = mean_squared_error(
+        validation_identifier, y_pred)
+    results_dict[model_name]["CCC"] = concordance_correlation_coefficient(
+        validation_identifier, y_pred)
+    results_dict[model_name]["Pearson R"]["R"], results_dict[model_name]["Pearson R"]["p-value"] = pearsonr(
+        validation_identifier, y_pred)
 
 
 def linear_regressor(X, y, X_validation, validation_identifier):
@@ -54,16 +59,15 @@ def mlp_regressor(X, y, X_validation, validation_identifier):
         max_iter=500,
         early_stopping=False,
         verbose=True,
-        hidden_layer_sizes=(50, 50),
+        hidden_layer_sizes=(50, 100, 50),
         random_state=100,
     )
     fit_model(mlp_r, X, y, X_validation, validation_identifier)
 
+def sgd_regressor(X, y, X_validation, validation_identifier):
+    sgd_r = SGDRegressor(max_iter=1000, tol=1e-3)
+    fit_model(sgd_r, X, y, X_validation, validation_identifier)
 
-def grid_search(model, parameters, x, Y, x_validation, validation_identifier):
-
-    original_model_name = type(model).__name__
-    grid_search_clf = GridSearchCV(model, parameters, scoring="balanced_accuracy")
-    fit_model(
-        grid_search_clf, x, Y, x_validation, validation_identifier, original_model_name
-    )
+def gradient_boosting_regressor(X, y, X_validation, validation_identifier):
+    gb_r = GradientBoostingRegressor(random_state=0)
+    fit_model(gb_r, X, y, X_validation, validation_identifier)
