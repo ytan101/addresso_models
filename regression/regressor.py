@@ -24,7 +24,7 @@ while attempts < 100:
     try:
         data_folder = input("Enter the datasets you wish to use: ")
         # if data_folder == "all":
-            # make dictionary with input and output of all datasets
+        # make dictionary with input and output of all datasets
         inpu = sio.loadmat(f"data/{data_folder}/Train_text.mat")
         mat_input = inpu["final_output"]
         inpu_validation = sio.loadmat(f"data/{data_folder}/Test_text.mat")
@@ -33,13 +33,15 @@ while attempts < 100:
     except:
         attempts += 1
         print("Invalid file name, please choose one of the following")
-        print("egemaps, emobase_feature, emobase_feature_large, text, text_large, word_embedding, all")
+        print(
+            "egemaps, emobase_feature, emobase_feature_large, text, text_large, word_embedding, all"
+        )
 
-Actual_number_of_input = 88
 number_of_features = mat_input.shape[1] - 1
 
 # Regression data
-X = mat_input[:, 0:Actual_number_of_input]
+X = mat_input[:, 0:number_of_features]
+print(X)
 y = mat_input[:, number_of_features]
 
 scaler = StandardScaler()
@@ -61,7 +63,7 @@ user_input = 50
 
 if ensemble_learning == 1:
 
-    X_validation = mat_input_validation[:, 0:Actual_number_of_input]
+    X_validation = mat_input_validation[:, 0:number_of_features]
     X_validation = scaler.transform(X_validation)
     validation_identifier = mat_input_validation[:, number_of_features]
 
@@ -71,7 +73,9 @@ if ensemble_learning == 1:
     regressor_models.random_forest_regressor(X, y, X_validation, validation_identifier)
     regressor_models.mlp_regressor(X, y, X_validation, validation_identifier)
     regressor_models.sgd_regressor(X, y, X_validation, validation_identifier)
-    regressor_models.gradient_boosting_regressor(X, y, X_validation, validation_identifier)
+    regressor_models.gradient_boosting_regressor(
+        X, y, X_validation, validation_identifier
+    )
     print(regressor_models.results_dict)
     # print(X_validation, validation_identifier)
 
